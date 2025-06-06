@@ -1,0 +1,45 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Terraform variable files containing sensitive data
+terraform.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Crash log files
+crash.log
+
+# Backup files
+*.backup
+*.bak
+
+# Python virtual environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local configuration overrides
+domains.local.yaml
+config.local.* 
+*.tfvars

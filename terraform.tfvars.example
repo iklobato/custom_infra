@@ -1,0 +1,190 @@
+# =============================================================================
+# CLOUDFLARE API TOKEN CONFIGURATION
+# =============================================================================
+
+# Cloudflare API token - get this from Cloudflare dashboard
+# 
+# 🔗 How to create the token:
+# 1. Go to https://dash.cloudflare.com/profile/api-tokens
+# 2. Click "Create Token"
+# 3. Use "Custom token" template
+# 4. Configure the permissions below:
+
+# 📋 REQUIRED PERMISSIONS FOR THIS TERRAFORM CONFIGURATION:
+#
+# Zone Permissions:
+# ├── Zone:Edit
+# │   ├── Purpose: Create, modify, and delete zones
+# │   ├── Used for: cloudflare_zone resources
+# │   └── Scope: Include all zones OR specific zones you want to manage
+# │
+# ├── Zone Settings:Edit  
+# │   ├── Purpose: Modify zone-level settings (SSL, security, performance)
+# │   ├── Used for: cloudflare_zone_settings_override resources
+# │   └── Includes: SSL settings, security level, caching, etc.
+# │
+# └── Zone:Read
+#     ├── Purpose: Read zone information and status
+#     ├── Used for: Importing existing zones and validation
+#     └── Required for: Zone imports and state refreshes
+#
+# DNS Permissions:
+# ├── DNS:Edit
+# │   ├── Purpose: Create, modify, and delete DNS records
+# │   ├── Used for: cloudflare_record resources (A, CNAME, MX, TXT, etc.)
+# │   └── Includes: All DNS record types and DNSSEC management
+# │
+# └── DNS:Read
+#     ├── Purpose: Read existing DNS records
+#     ├── Used for: State management and conflict detection
+#     └── Required for: DNS record imports and updates
+#
+# Security Permissions:
+# ├── Page Rules:Edit
+# │   ├── Purpose: Create and manage page rules
+# │   ├── Used for: cloudflare_page_rule resources
+# │   └── Includes: Redirects, security settings, caching rules
+# │
+# ├── Firewall Services:Edit
+# │   ├── Purpose: Manage WAF rules, rate limiting, and firewall rules
+# │   ├── Used for: cloudflare_ruleset resources (WAF, rate limiting, custom rules)
+# │   └── Includes: Custom rules, managed rulesets, rate limiting rules
+# │
+# └── Zone WAF:Edit
+#     ├── Purpose: Configure Web Application Firewall settings
+#     ├── Used for: WAF managed rulesets and custom security rules
+#     └── Includes: OWASP rules, Cloudflare managed rules, custom WAF rules
+#
+# Account Permissions:
+# └── Account:Read
+#     ├── Purpose: Read account information
+#     ├── Used for: Account ID resolution for zone creation
+#     └── Required for: data.cloudflare_accounts data source
+
+# 🛡️ SECURITY RECOMMENDATIONS:
+# 
+# 1. Principle of Least Privilege:
+#    - Only grant permissions needed for your specific use case
+#    - Use zone-specific scope if managing only certain domains
+#    - Set token expiration date (recommended: 1 year maximum)
+#
+# 2. Token Scope Configuration:
+#    - Account scope: "Include - Your Account Name"
+#    - Zone scope: "Include - All zones" OR "Include - Specific zones"
+#    - Client IP filtering: Add your IP/CIDR for extra security (optional)
+#
+# 3. Token Security:
+#    - Store securely (never commit to version control)
+#    - Use environment variables in CI/CD pipelines
+#    - Rotate regularly (every 6-12 months)
+#    - Monitor token usage in Cloudflare dashboard
+
+# 📝 STEP-BY-STEP TOKEN CREATION:
+#
+# 1. Navigate to: https://dash.cloudflare.com/profile/api-tokens
+# 2. Click: "Create Token"
+# 3. Choose: "Custom token"
+# 4. Add the following permissions:
+#    
+#    Permissions:
+#    ┌─────────────────────────────────────────────────────────────┐
+#    │ Zone                    | Edit    | All zones               │
+#    │ Zone Settings          | Edit    | All zones               │
+#    │ DNS                    | Edit    | All zones               │
+#    │ Page Rules             | Edit    | All zones               │
+#    │ Firewall Services      | Edit    | All zones               │
+#    │ Zone WAF               | Edit    | All zones               │
+#    │ Account                | Read    | Include: Your Account   │
+#    └─────────────────────────────────────────────────────────────┘
+#
+# 5. Zone Resources: "Include All zones" OR select specific zones
+# 6. Account Resources: "Include Your Account"
+# 7. Client IP Address Filtering: (Optional) Add your IP for security
+# 8. TTL: Set expiration (recommended: 1 year)
+# 9. Click "Continue to summary"
+# 10. Review and click "Create Token"
+# 11. Copy the token and paste it below (keep it secure!)
+
+# 🔧 MINIMAL PERMISSIONS (if you want to restrict further):
+# If you only need basic DNS management without security features:
+# - Zone:Edit, DNS:Edit, Account:Read
+# 
+# If you want security features but no firewall rules:
+# - Zone:Edit, Zone Settings:Edit, DNS:Edit, Page Rules:Edit, Account:Read
+#
+# For full security configuration (recommended):
+# - All permissions listed above
+
+cloudflare_api_token = "your_cloudflare_api_token_here"
+
+# =============================================================================
+# CLOUDFLARE ACCOUNT CONFIGURATION
+# =============================================================================
+
+# Your Cloudflare account name (find in Cloudflare dashboard)
+# 
+# 🔍 How to find your account name:
+# 1. Go to https://dash.cloudflare.com
+# 2. Look at the top-right corner for your account name
+# 3. Or go to "My Profile" and check the account section
+# 
+# ⚠️  NOTE: This must be the exact account name as shown in Cloudflare
+cloudflare_account_name = "your_account_name"
+
+# =============================================================================
+# CONFIGURATION FILES
+# =============================================================================
+
+# Path to the domains configuration file (default: domains.yaml)
+# You can use a different file name or path if needed
+domains_config_file = "domains.yaml"
+
+# =============================================================================
+# DEFAULT SECURITY SETTINGS
+# =============================================================================
+
+# Default zone settings applied to all domains (can be overridden per domain)
+# These settings provide a high-security baseline for all domains
+default_zone_settings = {
+  # SSL/TLS Security (Maximum Security Configuration)
+  ssl                      = "strict"        # Requires valid SSL on origin
+  always_use_https         = "on"           # Force HTTPS for all traffic
+  automatic_https_rewrites = "on"           # Rewrite HTTP links to HTTPS
+  min_tls_version          = "1.2"          # Block TLS 1.0/1.1 (security)
+  tls_1_3                  = "on"           # Enable TLS 1.3 (performance + security)
+  opportunistic_encryption = "on"           # Enable opportunistic encryption
+  
+  # Security Settings (High Security Profile)
+  security_level           = "high"         # High security challenges
+  browser_cache_ttl        = 14400          # 4 hours cache TTL
+  challenge_ttl            = 1800           # 30 minutes challenge TTL
+  browser_check            = "on"           # Browser integrity check
+  development_mode         = "off"          # Always off in production
+  email_obfuscation        = "on"           # Hide emails from scrapers
+  hotlink_protection       = "on"           # Prevent bandwidth theft
+  server_side_exclude      = "on"           # Enable server-side excludes
+  privacy_pass             = "on"           # Reduce CAPTCHA friction
+  
+  # Network & Performance Settings
+  ip_geolocation           = "on"           # Enable for security rules
+  ipv6                     = "on"           # Enable IPv6 support
+  rocket_loader            = "off"          # Disabled for security (can interfere)
+  brotli                   = "on"           # Enable compression
+  early_hints              = "on"           # Enable early hints
+}
+
+# =============================================================================
+# VALIDATION CHECKLIST
+# =============================================================================
+#
+# Before running terraform, verify:
+# ✅ API token has all required permissions
+# ✅ Account name matches Cloudflare dashboard exactly
+# ✅ domains.yaml file exists and is properly configured
+# ✅ Token is not expired
+# ✅ You have the necessary zones in your Cloudflare account
+#
+# Test your configuration:
+# 1. Run: terraform validate
+# 2. Run: terraform plan
+# 3. If successful, run: terraform apply 

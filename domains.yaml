@@ -1,0 +1,214 @@
+domains:
+  iklobato.com:
+    plan: "free"
+    dns_records:
+      # Root domain pointing to GitHub Pages
+      - name: "@"
+        type: "A"
+        value: "185.199.108.153"
+        proxied: true
+      - name: "@"
+        type: "A"
+        value: "185.199.109.153"
+        proxied: true
+      - name: "@"
+        type: "A"
+        value: "185.199.110.153"
+        proxied: true
+      - name: "@"
+        type: "A"
+        value: "185.199.111.153"
+        proxied: true
+      
+      # WWW subdomain pointing to GitHub Pages
+      - name: "www"
+        type: "CNAME"
+        value: "iklobato.github.io"
+        proxied: true
+      
+      # Domain connect for third-party services
+      - name: "_domainconnect"
+        type: "CNAME"
+        value: "_domainconnect.gd.domaincontrol.com"
+        proxied: true
+
+      # Security DNS records (optional examples - uncomment if needed)
+      # CAA record for certificate authority authorization
+      # - name: "@"
+      #   type: "CAA"
+      #   value: "0 issue \"letsencrypt.org\""
+      #   proxied: false
+      
+      # SPF record to prevent email spoofing
+      # - name: "@"
+      #   type: "TXT"
+      #   value: "v=spf1 -all"
+      #   proxied: false
+      
+      # DMARC policy for email security
+      # - name: "_dmarc"
+      #   type: "TXT"
+      #   value: "v=DMARC1; p=quarantine; rua=mailto:dmarc@iklobato.com"
+      #   proxied: false
+    
+    page_rules:
+      # Security-focused page rules
+      - target: "iklobato.com/admin*"
+        priority: 1
+        actions:
+          security_level: "high"
+          browser_check: "on"
+      
+      # Force HTTPS for all traffic
+      - target: "http://iklobato.com/*"
+        priority: 2
+        actions:
+          always_use_https: true
+      
+      # Force HTTPS for www subdomain
+      - target: "http://www.iklobato.com/*"
+        priority: 3
+        actions:
+          always_use_https: true
+      
+      # Optional: Redirect www to non-www (uncomment if needed)
+      # - target: "www.iklobato.com/*"
+      #   priority: 4
+      #   actions:
+      #     forwarding_url:
+      #       status_code: 301
+      #       url: "https://iklobato.com/$1"
+    
+    # Custom firewall rules for enhanced security (free)
+    firewall_rules:
+      # Block known bad bots and scrapers
+      - description: "Block Bad Bots"
+        expression: '(cf.client.bot) and not (cf.verified_bot_category in {"Search Engine Crawler" "Academic Researcher"})'
+        action: "block"
+        enabled: true
+      
+      # Block requests from known malicious countries (adjust as needed)
+      - description: "Block High-Risk Countries"
+        expression: '(ip.geoip.country in {"CN" "RU" "IR" "KP"})'
+        action: "challenge"
+        enabled: false  # Set to true if you want to enable this
+      
+      # Block suspicious user agents
+      - description: "Block Suspicious User Agents"
+        expression: '(http.user_agent contains "sqlmap") or (http.user_agent contains "nikto") or (http.user_agent contains "nessus") or (http.user_agent eq "")'
+        action: "block"
+        enabled: true
+      
+      # Block requests with suspicious headers
+      - description: "Block SQL Injection Attempts"
+        expression: '(any(http.request.uri.args.names[*] contains "union")) or (any(http.request.uri.args.values[*] contains "select")) or (any(http.request.uri.args.values[*] contains "drop"))'
+        action: "block"
+        enabled: true
+      
+      # Protect against common attack patterns
+      - description: "Block Common Attack Patterns"
+        expression: '(http.request.uri.path contains "../") or (http.request.uri.path contains ".env") or (http.request.uri.path contains "wp-admin" and not cf.verified_bot)'
+        action: "block"
+        enabled: true
+
+    # Rate limiting rules for DDoS protection (free with limits)
+    rate_limit_rules:
+      # Basic rate limiting per IP
+      - description: "General Rate Limiting"
+        expression: "true"
+        action: "block"
+        characteristics: ["ip.src"]
+        period: 60
+        requests_per_period: 100
+        enabled: true
+      
+      # Strict rate limiting for login/admin endpoints
+      - description: "Strict Rate Limiting for Admin"
+        expression: '(http.request.uri.path contains "/admin") or (http.request.uri.path contains "/login")'
+        action: "block"
+        characteristics: ["ip.src"]
+        period: 300
+        requests_per_period: 5
+        enabled: true
+      
+      # API endpoint protection
+      - description: "API Rate Limiting"
+        expression: 'http.request.uri.path contains "/api/"'
+        action: "block"
+        characteristics: ["ip.src"]
+        period: 60
+        requests_per_period: 30
+        enabled: true
+
+    zone_settings:
+      # SSL/TLS Security (Maximum Security)
+      ssl: "strict"                    # Require valid certificate on origin
+      always_use_https: "on"           # Force HTTPS
+      automatic_https_rewrites: "on"   # Rewrite HTTP links to HTTPS
+      min_tls_version: "1.2"          # Minimum TLS 1.2
+      tls_1_3: "on"                   # Enable TLS 1.3
+      opportunistic_encryption: "on"   # Enable opportunistic encryption
+      
+      # Security Settings
+      security_level: "high"           # High security level
+      challenge_ttl: 1800             # 30 minutes
+      browser_check: "on"             # Enable browser integrity check
+      hotlink_protection: "on"        # Prevent hotlinking
+      email_obfuscation: "on"         # Obfuscate email addresses
+      server_side_exclude: "on"       # Enable server-side excludes
+      privacy_pass: "on"              # Enable Privacy Pass
+      
+      # Security Headers
+      security_header:
+        enabled: true
+        max_age: 31536000             # 1 year HSTS
+        include_subdomains: true      # Include subdomains in HSTS
+        nosniff: true                 # X-Content-Type-Options: nosniff
+      
+      # Performance Settings (with security considerations)
+      browser_cache_ttl: 14400        # 4 hours
+      development_mode: "off"         # Always off in production
+      ip_geolocation: "on"            # Enable for security rules
+      ipv6: "on"                      # Enable IPv6
+      rocket_loader: "off"            # Disabled for security (can interfere with security scripts)
+      brotli: "on"                    # Enable compression
+      early_hints: "on"              # Enable early hints
+
+  # Template for additional domains
+  # your-second-domain.com:
+  #   plan: "free"
+  #   dns_records:
+  #     - name: "@"
+  #       type: "A"
+  #       value: "192.0.2.1"
+  #       proxied: true
+  #     - name: "www"
+  #       type: "CNAME"
+  #       value: "your-second-domain.com"
+  #       proxied: true
+  #   
+  #   page_rules:
+  #     - target: "http://your-second-domain.com/*"
+  #       priority: 1
+  #       actions:
+  #         always_use_https: true
+  #   
+  #   firewall_rules:
+  #     - description: "Block Bad Bots"
+  #       expression: '(cf.client.bot) and not (cf.verified_bot_category in {"Search Engine Crawler"})'
+  #       action: "block"
+  #       enabled: true
+  #   
+  #   rate_limit_rules:
+  #     - description: "General Rate Limiting"
+  #       expression: "true"
+  #       action: "block"
+  #       characteristics: ["ip.src"]
+  #       period: 60
+  #       requests_per_period: 100
+  #       enabled: true
+  #   
+  #   zone_settings:
+  #     ssl: "strict"
+  #     security_level: "high"
+  #     always_use_https: "on" 

@@ -1,329 +1,408 @@
-# Cloudflare Domain Management with Terraform
+# 🌐 Enterprise-Grade Cloudflare Domain Management with Terraform
 
-This repository provides a comprehensive Terraform configuration for managing multiple domains with Cloudflare. It supports DNS records, page rules, and zone settings management through a clean YAML-based configuration.
+This repository provides a **production-ready, security-focused** Terraform configuration for managing multiple domains with Cloudflare. It implements enterprise-grade security features using Cloudflare's free plan, with comprehensive DNS, WAF, firewall rules, and rate limiting through a clean YAML-based configuration.
 
-## Features
+## 🚀 What This Project Does
 
-- 🌐 **Multi-domain management**: Manage multiple domains from a single configuration
-- 📝 **YAML configuration**: Easy-to-read domain configuration in YAML format
-- 🔧 **Flexible DNS records**: Support for A, AAAA, CNAME, MX, TXT, and other record types
-- 📱 **Page rules**: Configure redirects and other page-level rules
-- ⚙️ **Zone settings**: Customize SSL, security, and performance settings per domain
-- 🏗️ **Modular structure**: Clean separation of concerns with multiple Terraform files
-- 🔒 **Security-focused**: Proper handling of sensitive data and credentials
+**Complete Cloudflare Domain Infrastructure as Code** with:
 
-## Prerequisites
+- 🔒 **Enterprise Security**: WAF, firewall rules, rate limiting, and DDoS protection
+- 🌍 **Multi-Domain Management**: Manage unlimited domains from a single configuration
+- 🛡️ **Automated Security**: DNSSEC, SSL/TLS strict mode, security headers
+- 📝 **YAML Configuration**: Human-readable domain configuration
+- 🔧 **Production Ready**: Zero-downtime deployments with state management
+- 📊 **Complete Observability**: Detailed outputs and monitoring
 
-1. **Cloudflare Account**: You need a Cloudflare account with domains added
-2. **Cloudflare API Token**: Create an API token with the following permissions:
-   - Zone: Edit
-   - DNS: Edit
-   - Page Rules: Edit
-3. **Terraform**: Install Terraform >= 1.0
+## 🔥 Key Features
 
-## Quick Start
+### Security Features (All Free Plan)
+- 🛡️ **Web Application Firewall (WAF)**: OWASP Core Ruleset + Cloudflare Managed Rules
+- 🚫 **Advanced Firewall Rules**: Bad bot blocking, SQL injection prevention, path traversal protection
+- ⏱️ **Rate Limiting**: Multi-tier rate limiting (general, admin, API endpoints)
+- 🔐 **SSL/TLS Security**: Strict mode, TLS 1.3, HSTS headers, minimum TLS 1.2
+- 🌐 **DNSSEC**: Automatic enablement for DNS security
+- 🔒 **Security Headers**: CSP, HSTS, X-Frame-Options, and more
+- 🤖 **Bot Protection**: Verified bot allowlisting with bad bot blocking
+- 🌍 **Optional Geo-blocking**: Country-based access control
 
-### 1. Clone and Setup
+### Management Features
+- 📱 **Page Rules**: HTTP to HTTPS redirects, admin panel protection
+- 📝 **DNS Management**: Complete DNS record management with proxy control
+- ⚙️ **Zone Settings**: Performance and security optimization
+- 🏗️ **Modular Structure**: Clean, maintainable Terraform code
+- 📊 **Comprehensive Outputs**: Zone IDs, name servers, security status
+
+## 🎯 Use Cases
+
+### Perfect For:
+- **Production websites** requiring enterprise-grade security
+- **E-commerce sites** needing DDoS and bot protection  
+- **SaaS applications** with API rate limiting needs
+- **Corporate websites** with compliance requirements
+- **Developer portfolios** wanting professional security
+- **Multi-tenant platforms** managing multiple domains
+
+### Security Compliance:
+- **PCI DSS** compatible SSL/TLS settings
+- **GDPR** privacy protection features
+- **OWASP** security best practices
+- **NIST** security framework alignment
+
+## 🏗️ Architecture
+
+```mermaid
+graph TB
+    A[domains.yaml] --> B[Terraform Configuration]
+    B --> C[Cloudflare API]
+    C --> D[DNS Zones]
+    C --> E[WAF Rules]
+    C --> F[Firewall Rules]
+    C --> G[Rate Limiting]
+    C --> H[SSL/TLS Config]
+    
+    D --> I[Your Domain]
+    E --> I
+    F --> I  
+    G --> I
+    H --> I
+    
+    I --> J[Protected Website]
+```
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+
+- **Cloudflare Account**: Free account with domains added
+- **Terraform**: Version >= 1.0
+- **Git**: For version control
+
+### 2. Clone and Setup
 
 ```bash
 git clone <this-repository>
-cd <repository-name>
+cd cloudflare-terraform-security
 ```
 
-### 2. Configure Cloudflare API Access
-
-Create a `terraform.tfvars` file based on the example:
+### 3. Configure API Access
 
 ```bash
+# Copy the example configuration
 cp terraform.tfvars.example terraform.tfvars
+
+# Edit with your details
+nano terraform.tfvars
 ```
 
-Edit `terraform.tfvars` and add your Cloudflare credentials:
-
+**Required Configuration:**
 ```hcl
-cloudflare_api_token = "your_actual_cloudflare_api_token"
-cloudflare_account_name = "your_cloudflare_account_name"
+# Get from: https://dash.cloudflare.com/profile/api-tokens
+cloudflare_api_token = "your_40_character_api_token"
+
+# Your Cloudflare account email
+cloudflare_account_name = "your-email@domain.com"
 ```
 
-### 3. Configure Your Domains
+### 4. Configure Your Domain
 
-Edit the `domains.yaml` file to define your domains. Here's the structure:
+Edit `domains.yaml` with your domain:
 
 ```yaml
 domains:
   yourdomain.com:
-    plan: "free"  # or "pro", "business", "enterprise"
+    plan: "free"
     dns_records:
       - name: "@"
-        type: "A"
-        value: "192.0.2.1"
+        type: "A" 
+        value: "your.server.ip"
         proxied: true
       - name: "www"
         type: "CNAME"
         value: "yourdomain.com"
         proxied: true
-      - name: "@"
-        type: "MX"
-        value: "10 mail.yourdomain.com"
-        proxied: false
-    page_rules:
-      - target: "www.yourdomain.com/*"
-        priority: 1
-        actions:
-          forwarding_url:
-            status_code: 301
-            url: "https://yourdomain.com/$1"
-    zone_settings:
-      ssl: "strict"
-      security_level: "medium"
+    
+    # Security features automatically applied!
+    # WAF, firewall rules, rate limiting, SSL/TLS, DNSSEC
 ```
 
-### 4. Initialize and Apply Terraform
+### 5. Deploy
 
 ```bash
-# Initialize Terraform
+# Using our Makefile (recommended)
+make init
+make validate
+make plan
+make apply
+
+# Or manually
 terraform init
-
-# Plan the changes
 terraform plan
-
-# Apply the configuration
 terraform apply
 ```
 
-### 5. Update DNS at Your Registrar
-
-After applying, Terraform will output the name servers for each domain. Update your domain registrar's DNS settings to use these Cloudflare name servers.
+### 6. Update Name Servers
 
 ```bash
+# Get your Cloudflare name servers
 terraform output name_servers_by_domain
+
+# Update at your domain registrar
 ```
 
-## Configuration Reference
+## 🛡️ Security Configuration
 
-### Domain Configuration Schema
+### Automatic Security Features
 
-Each domain in `domains.yaml` supports the following configuration:
-
-#### Basic Settings
+**Every domain gets enterprise-grade security:**
 
 ```yaml
-domains:
-  example.com:
-    plan: "free"  # Required: "free", "pro", "business", "enterprise"
+# Automatically configured for all domains:
+security_features:
+  dnssec: enabled                    # DNS security
+  ssl_mode: strict                   # Maximum SSL security
+  tls_version: "1.3"                 # Latest TLS
+  waf: enabled                       # Web Application Firewall
+  ddos_protection: enabled           # DDoS mitigation
+  bot_protection: enabled            # Bad bot blocking
+  rate_limiting: enabled             # Multi-tier rate limiting
+  security_headers: enabled          # HSTS, CSP, etc.
 ```
 
-#### DNS Records
+### Firewall Rules Applied
 
-```yaml
-dns_records:
-  - name: "@"           # Required: Record name (@ for root domain)
-    type: "A"           # Required: Record type (A, AAAA, CNAME, MX, TXT, etc.)
-    value: "1.2.3.4"    # Required: Record value
-    proxied: true       # Optional: Enable Cloudflare proxy (default: false)
-    ttl: 300           # Optional: TTL in seconds (ignored if proxied=true)
-    priority: 10       # Optional: Priority for MX records
-```
+1. **Bad Bot Blocking**: Blocks malicious crawlers and scrapers
+2. **SQL Injection Protection**: Prevents database attacks  
+3. **Path Traversal Prevention**: Blocks directory traversal attempts
+4. **Suspicious User Agents**: Blocks known attack tools
+5. **Optional Geo-blocking**: Country-based restrictions
 
-**Supported DNS Record Types:**
-- `A`: IPv4 address
-- `AAAA`: IPv6 address
-- `CNAME`: Canonical name
-- `MX`: Mail exchange
-- `TXT`: Text record
-- `SRV`: Service record
-- `CAA`: Certificate Authority Authorization
-- `NS`: Name server
+### Rate Limiting Tiers
 
-#### Page Rules
+- **General Traffic**: 100 requests/minute per IP
+- **Admin Endpoints**: 5 requests/5 minutes per IP  
+- **API Endpoints**: 30 requests/minute per IP
 
-```yaml
-page_rules:
-  - target: "www.example.com/*"     # Required: URL pattern to match
-    priority: 1                    # Required: Rule priority (1 = highest)
-    actions:
-      forwarding_url:              # Redirect to another URL
-        status_code: 301           # 301 or 302
-        url: "https://example.com/$1"
-      cache_level: "standard"      # Cache level setting
-      always_use_https: true       # Force HTTPS
-```
-
-#### Zone Settings
-
-```yaml
-zone_settings:
-  ssl: "strict"                    # SSL setting: "off", "flexible", "full", "strict"
-  security_level: "medium"         # Security level: "low", "medium", "high", "under_attack"
-  automatic_https_rewrites: "on"   # Automatic HTTPS rewrites: "on", "off"
-  browser_cache_ttl: 14400        # Browser cache TTL in seconds
-  development_mode: "off"          # Development mode: "on", "off"
-  min_tls_version: "1.2"          # Minimum TLS version: "1.0", "1.1", "1.2", "1.3"
-  # ... more settings available
-```
-
-### Default Settings
-
-You can set default zone settings in `terraform.tfvars`:
-
-```hcl
-default_zone_settings = {
-  ssl                      = "strict"
-  automatic_https_rewrites = "on"
-  security_level           = "medium"
-  # ... more defaults
-}
-```
-
-Domain-specific settings override these defaults.
-
-## File Structure
+## 📁 Project Structure
 
 ```
-.
-├── main.tf                    # Main Terraform configuration
-├── variables.tf               # Variable definitions
+cloudflare-terraform-security/
+├── main.tf                    # Core Terraform configuration
+├── variables.tf               # Input variables and defaults
 ├── outputs.tf                 # Output definitions
 ├── domains.yaml              # Domain configuration
-├── terraform.tfvars.example  # Example variables file
-├── terraform.tfvars          # Your actual variables (excluded from git)
-├── .gitignore                # Git ignore rules
+├── terraform.tfvars.example  # Configuration template
+├── terraform.tfvars          # Your secrets (gitignored)
+├── Makefile                  # Convenient commands
+├── get-zone-info.sh          # Zone import helper
+├── SECURITY.md               # Security documentation
+├── .gitignore                # Security-focused exclusions
 └── README.md                 # This file
 ```
 
-## Common Use Cases
+## 🔧 Advanced Configuration
+
+### Custom Security Rules
+
+```yaml
+domains:
+  yourdomain.com:
+    # Override default security settings
+    firewall_rules:
+      - description: "Block Specific Country"
+        expression: '(ip.geoip.country eq "XX")'
+        action: "block"
+        enabled: true
+    
+    rate_limit_rules:
+      - description: "Custom API Rate Limit"
+        expression: 'http.request.uri.path contains "/api/v2/"'
+        action: "block"
+        period: 60
+        requests_per_period: 10
+        enabled: true
+```
+
+### Environment-Specific Settings
+
+```bash
+# Development
+cp domains.yaml domains.dev.yaml
+export TF_VAR_domains_config_file="domains.dev.yaml"
+
+# Production  
+cp domains.yaml domains.prod.yaml
+export TF_VAR_domains_config_file="domains.prod.yaml"
+```
+
+## 📊 Monitoring and Outputs
+
+### Available Outputs
+
+```bash
+# View all security configurations
+terraform output security_summary
+
+# Get zone information
+terraform output zone_ids
+terraform output name_servers_by_domain
+
+# DNS record summary
+terraform output dns_records_summary
+```
+
+### Security Monitoring
+
+Access detailed security analytics at:
+- **Cloudflare Dashboard**: https://dash.cloudflare.com
+- **Security Tab**: Real-time threat monitoring
+- **Analytics**: Traffic and security metrics
+- **Firewall Events**: Rule trigger logs
+
+## 🛠️ Management Commands
+
+### Using Makefile
+
+```bash
+make help          # Show available commands
+make validate      # Validate configuration
+make plan          # Preview changes
+make apply         # Deploy changes
+make import        # Import existing zones
+make format        # Format Terraform files
+make clean         # Clean Terraform state
+```
+
+### Manual Terraform
+
+```bash
+terraform init     # Initialize providers
+terraform validate # Validate syntax
+terraform plan     # Plan changes
+terraform apply    # Apply changes
+terraform destroy  # Remove all resources
+```
+
+## 🔄 Common Workflows
 
 ### Adding a New Domain
 
-1. Add the domain configuration to `domains.yaml`
-2. Run `terraform plan` to review changes
-3. Run `terraform apply` to create the zone and records
-4. Update your domain registrar to use Cloudflare name servers
+1. Add domain to `domains.yaml`
+2. Run `make plan` to preview
+3. Run `make apply` to deploy
+4. Update name servers at registrar
 
-### Updating DNS Records
+### Updating Security Rules
 
-1. Modify the `dns_records` section in `domains.yaml`
-2. Run `terraform plan` to see the changes
-3. Run `terraform apply` to update the records
+1. Modify rules in `domains.yaml`
+2. Run `make validate`
+3. Run `make plan` to see changes
+4. Run `make apply` to update
 
-### Setting Up Email
-
-```yaml
-dns_records:
-  - name: "@"
-    type: "MX"
-    value: "10 mail.yourdomain.com"
-    proxied: false
-  - name: "@"
-    type: "TXT"
-    value: "v=spf1 include:_spf.google.com ~all"
-    proxied: false
-  - name: "mail"
-    type: "A"
-    value: "192.0.2.10"
-    proxied: false
-```
-
-### Setting Up Redirects
-
-```yaml
-page_rules:
-  - target: "www.yourdomain.com/*"
-    priority: 1
-    actions:
-      forwarding_url:
-        status_code: 301
-        url: "https://yourdomain.com/$1"
-```
-
-## Security Best Practices
-
-1. **API Token Security**: Store your Cloudflare API token securely
-2. **Terraform State**: Use remote state storage for production
-3. **Access Control**: Limit API token permissions to minimum required
-4. **Version Control**: Never commit `terraform.tfvars` to version control
-5. **SSL Settings**: Use "strict" SSL mode for production domains
-
-## Terraform Commands
+### Emergency Security Response
 
 ```bash
-# Initialize Terraform (run once)
-terraform init
+# Quickly enable "Under Attack" mode
+terraform apply -var="emergency_mode=true"
 
-# Format Terraform files
-terraform fmt
-
-# Validate configuration
-terraform validate
-
-# Plan changes
-terraform plan
-
-# Apply changes
-terraform apply
-
-# Show current state
-terraform show
-
-# List all resources
-terraform state list
-
-# Import existing resources (if needed)
-terraform import cloudflare_zone.domains[\"example.com\"] zone_id
-
-# Destroy all resources (use with caution!)
-terraform destroy
+# Block specific country
+# Add to domains.yaml and apply
 ```
 
-## Outputs
+## 🚨 Security Best Practices
 
-After running `terraform apply`, you can view outputs:
+### API Token Security
+- ✅ Use minimum required permissions
+- ✅ Store tokens securely (never commit)
+- ✅ Rotate tokens regularly
+- ✅ Use separate tokens per environment
 
-```bash
-# Show all outputs
-terraform output
+### Infrastructure Security
+- ✅ Enable remote state storage
+- ✅ Use workspace separation
+- ✅ Implement approval workflows
+- ✅ Monitor security events
 
-# Show specific output
-terraform output name_servers_by_domain
-terraform output zone_ids
-```
+### Domain Security
+- ✅ Enable DNSSEC on all domains
+- ✅ Use strict SSL mode
+- ✅ Implement security headers
+- ✅ Regular security audits
 
-## Troubleshooting
+## 🆘 Troubleshooting
 
 ### Common Issues
 
-1. **Invalid API Token**: Ensure your token has the correct permissions
-2. **Zone Already Exists**: If the zone exists in Cloudflare, import it first
-3. **DNS Propagation**: DNS changes may take time to propagate globally
-4. **Terraform Lock**: If terraform is locked, run `terraform force-unlock LOCK_ID`
+**Invalid API Token**
+```bash
+# Check token length (should be 40 characters)
+echo "Token length: $(echo $CLOUDFLARE_API_TOKEN | wc -c)"
+```
 
-### Debugging
+**Zone Import Required**
+```bash
+# Import existing zone
+./get-zone-info.sh yourdomain.com
+terraform import cloudflare_zone.domains[\"yourdomain.com\"] ZONE_ID
+```
 
-Enable debug logging:
+**DNS Propagation**
+```bash
+# Check DNS propagation
+dig @8.8.8.8 yourdomain.com
+```
+
+### Debug Mode
 
 ```bash
 export TF_LOG=DEBUG
 terraform apply
 ```
 
-### Getting Help
+## 📚 Documentation
 
-1. Check the [Cloudflare Terraform Provider Documentation](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)
-2. Review Terraform logs for detailed error messages
-3. Validate your YAML syntax using an online YAML validator
+- 📖 [Security Features Guide](SECURITY.md)
+- 🔧 [Terraform Provider Docs](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)
+- 🌐 [Cloudflare API Docs](https://developers.cloudflare.com/api/)
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-## License
+### Development Setup
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+```bash
+# Install dependencies
+make setup
 
-## Support
+# Run tests
+make test
 
-For issues specific to this configuration, please open an issue in this repository. For Cloudflare-specific questions, refer to their official documentation.
+# Run security checks
+make security-check
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Support
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)  
+- 📧 **Security Issues**: security@yourproject.com
+
+## 🎉 Acknowledgments
+
+- Cloudflare for their excellent API and free security features
+- HashiCorp for Terraform
+- The open-source community for security best practices
+
+---
+
+**⚡ Ready to secure your domains with enterprise-grade protection?**
+
+Start with `make init` and deploy world-class security in minutes!
